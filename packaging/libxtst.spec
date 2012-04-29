@@ -1,8 +1,7 @@
-
-Name:       libXtst
+Name:       libxtst
 Summary:    X.Org X11 libXtst runtime library
 Version:    1.2.0
-Release:    1
+Release:    2.6
 Group:      System/Libraries
 License:    MIT
 URL:        http://www.x.org/
@@ -35,8 +34,7 @@ Description: %{summary}
 
 
 %prep
-%setup -q -n %{name}-%{version}
-
+%setup -q
 
 %build
 
@@ -76,6 +74,5 @@ rm -rf %{buildroot}
 %{_libdir}/pkgconfig/xtst.pc
 %{_includedir}/X11/extensions/XTest.h
 %{_includedir}/X11/extensions/record.h
-%{_mandir}/man3/*.gz
 %{_docdir}/libXtst/*.xml
 
