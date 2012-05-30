@@ -6,6 +6,7 @@ Group:      System/Libraries
 License:    MIT
 URL:        http://www.x.org/
 Source0:    http://xorg.freedesktop.org/releases/individual/lib/%{name}-%{version}.tar.gz
+Source1001: packaging/libxtst.manifest 
 Requires(post):  /sbin/ldconfig
 Requires(postun):  /sbin/ldconfig
 BuildRequires:  pkgconfig(xproto)
@@ -37,6 +38,7 @@ Description: %{summary}
 %setup -q
 
 %build
+cp %{SOURCE1001} .
 
 %reconfigure \
 	CFLAGS="-Wall -g" \
@@ -62,6 +64,7 @@ rm -rf %{buildroot}
 
 
 %files
+%manifest libxtst.manifest
 %defattr(-,root,root,-)
 %doc COPYING ChangeLog
 %{_libdir}/libXtst.so.6
@@ -69,6 +72,7 @@ rm -rf %{buildroot}
 
 
 %files devel
+%manifest libxtst.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libXtst.so
 %{_libdir}/pkgconfig/xtst.pc
