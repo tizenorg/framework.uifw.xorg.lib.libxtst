@@ -2,7 +2,7 @@ Name:       libxtst
 Summary:    X.Org X11 libXtst runtime library
 Version:    1.2.0
 Release:    2.6
-Group:      System/Libraries
+Group:      Graphics/X Window System
 License:    MIT
 URL:        http://www.x.org/
 Source0:    http://xorg.freedesktop.org/releases/individual/lib/%{name}-%{version}.tar.gz
