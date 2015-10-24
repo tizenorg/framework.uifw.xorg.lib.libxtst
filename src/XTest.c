@@ -37,6 +37,9 @@ from The Open Group.
 #include <X11/extensions/extutil.h>
 #include <X11/extensions/XInput.h>
 #include <X11/extensions/XIproto.h>
+#ifdef _F_SUPPORT_XTEST_TOUCH_EVENT_
+#include <X11/extensions/XI2proto.h>
+#endif //_F_SUPPORT_XTEST_TOUCH_EVENT_
 
 static XExtensionInfo _xtest_info_data;
 static XExtensionInfo *xtest_info = &_xtest_info_data;
@@ -105,6 +108,7 @@ XTestQueryExtension (Display *dpy,
     if (XextHasExtension(info)) {
 	LockDisplay(dpy);
 	GetReq(XTestGetVersion, req);
+	if (!req) return False;
 	req->reqType = info->codes->major_opcode;
 	req->xtReqType = X_XTestGetVersion;
 	req->majorVersion = XTestMajorVersion;
@@ -137,6 +141,7 @@ XTestCompareCursorWithWindow(Display *dpy, Window window, Cursor cursor)
 
     LockDisplay(dpy);
     GetReq(XTestCompareCursor, req);
+    if (!req) return False;
     req->reqType = info->codes->major_opcode;
     req->xtReqType = X_XTestCompareCursor;
     req->window = window;
@@ -168,6 +173,7 @@ XTestFakeKeyEvent(Display *dpy, unsigned int keycode,
 
     LockDisplay(dpy);
     GetReq(XTestFakeInput, req);
+    if (!req) return 0;
     req->reqType = info->codes->major_opcode;
     req->xtReqType = X_XTestFakeInput;
     req->type = is_press ? KeyPress : KeyRelease;
@@ -189,6 +195,7 @@ XTestFakeButtonEvent(Display *dpy, unsigned int button,
 
     LockDisplay(dpy);
     GetReq(XTestFakeInput, req);
+    if (!req) return 0;
     req->reqType = info->codes->major_opcode;
     req->xtReqType = X_XTestFakeInput;
     req->type = is_press ? ButtonPress : ButtonRelease;
@@ -209,6 +216,7 @@ XTestFakeMotionEvent(Display *dpy, int screen, int x, int y, unsigned long delay
 
     LockDisplay(dpy);
     GetReq(XTestFakeInput, req);
+    if (!req) return 0;
     req->reqType = info->codes->major_opcode;
     req->xtReqType = X_XTestFakeInput;
     req->type = MotionNotify;
@@ -235,6 +243,7 @@ XTestFakeRelativeMotionEvent(Display *dpy, int dx, int dy, unsigned long delay)
 
     LockDisplay(dpy);
     GetReq(XTestFakeInput, req);
+    if (!req) return 0;
     req->reqType = info->codes->major_opcode;
     req->xtReqType = X_XTestFakeInput;
     req->type = MotionNotify;
@@ -297,11 +306,15 @@ XTestFakeDeviceKeyEvent(Display *dpy, XDevice *dev,
 {
     XExtDisplayInfo *info = find_display (dpy);
     register xXTestFakeInputReq *req;
+#ifdef _ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API_
+        xXTestFakeInputReply rep;
+#endif //_ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API_
 
     XTestICheckExtension (dpy, info, 0);
 
     LockDisplay(dpy);
     GetReq(XTestFakeInput, req);
+    if (!req) return 0;
     req->reqType = info->codes->major_opcode;
     req->xtReqType = X_XTestFakeInput;
     req->type = is_press ? XI_DeviceKeyPress : XI_DeviceKeyRelease;
@@ -311,6 +324,14 @@ XTestFakeDeviceKeyEvent(Display *dpy, XDevice *dev,
     req->deviceid = dev->device_id;
     if (n_axes)
 	send_axes(dpy, info, req, dev, 0, axes, n_axes);
+#ifdef _ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API_
+    (void) _XReply (dpy, (xReply *)&rep, 0, xTrue);
+    if (rep.accepted == xFalse) {
+        UnlockDisplay(dpy);
+        SyncHandle();
+        return 0;
+    }
+#endif //_ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API_
     UnlockDisplay(dpy);
     SyncHandle();
     return 1;
@@ -328,6 +349,7 @@ XTestFakeDeviceButtonEvent(Display *dpy, XDevice *dev,
 
     LockDisplay(dpy);
     GetReq(XTestFakeInput, req);
+    if (!req) return 0;
     req->reqType = info->codes->major_opcode;
     req->xtReqType = X_XTestFakeInput;
     req->type = is_press ? XI_DeviceButtonPress : XI_DeviceButtonRelease;
@@ -342,6 +364,72 @@ XTestFakeDeviceButtonEvent(Display *dpy, XDevice *dev,
     return 1;
 }
 
+#ifdef _F_SUPPORT_XTEST_TOUCH_EVENT_
+int
+XTestFakeDeviceTouchEvent(Display *dpy, XDevice *dev,
+			   unsigned int touchid, Bool is_press,
+			   int *axes, int n_axes, unsigned long delay)
+{
+    XExtDisplayInfo *info = find_display (dpy);
+    register xXTestFakeInputReq *req;
+#ifdef _ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API_
+    xXTestFakeInputReply rep;
+#endif //_ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API_
+
+    XTestICheckExtension (dpy, info, 0);
+
+    LockDisplay(dpy);
+    GetReq(XTestFakeInput, req);
+    if (!req) return 0;
+    req->reqType = info->codes->major_opcode;
+    req->xtReqType = X_XTestFakeInput;
+    req->type = is_press ? XI_TouchBegin : XI_TouchEnd;
+    req->type += (int)(long)info->data;
+    req->detail = touchid;
+    req->time = delay;
+    req->deviceid = dev->device_id;
+    if (n_axes)
+	send_axes(dpy, info, req, dev, 0, axes, n_axes);
+#ifdef _ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API_
+    (void) _XReply (dpy, (xReply *)&rep, 0, xTrue);
+    if (rep.accepted == xFalse) {
+        UnlockDisplay(dpy);
+        SyncHandle();
+        return 0;
+    }
+#endif //_ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API_
+    UnlockDisplay(dpy);
+    SyncHandle();
+    return 1;
+}
+
+int
+XTestFakeDeviceTouchUpdateEvent(Display *dpy, XDevice *dev,
+			   unsigned int touchid, int *axes, int n_axes, unsigned long delay)
+{
+    XExtDisplayInfo *info = find_display (dpy);
+    register xXTestFakeInputReq *req;
+
+    XTestICheckExtension (dpy, info, 0);
+
+    LockDisplay(dpy);
+    GetReq(XTestFakeInput, req);
+    if (!req) return 0;
+    req->reqType = info->codes->major_opcode;
+    req->xtReqType = X_XTestFakeInput;
+    req->type = XI_TouchUpdate;
+    req->type += (int)(long)info->data;
+    req->detail = touchid;
+    req->time = delay;
+    req->deviceid = dev->device_id;
+    if (n_axes)
+	send_axes(dpy, info, req, dev, 0, axes, n_axes);
+    UnlockDisplay(dpy);
+    SyncHandle();
+    return 1;
+}
+#endif //_F_SUPPORT_XTEST_TOUCH_EVENT_
+
 int
 XTestFakeProximityEvent(Display *dpy, XDevice *dev, Bool in_prox,
 			int *axes, int n_axes, unsigned long delay)
@@ -353,6 +441,7 @@ XTestFakeProximityEvent(Display *dpy, XDevice *dev, Bool in_prox,
 
     LockDisplay(dpy);
     GetReq(XTestFakeInput, req);
+    if (!req) return 0;
     req->reqType = info->codes->major_opcode;
     req->xtReqType = X_XTestFakeInput;
     req->type = in_prox ? XI_ProximityIn : XI_ProximityOut;
@@ -378,6 +467,7 @@ XTestFakeDeviceMotionEvent(Display *dpy, XDevice *dev,
 
     LockDisplay(dpy);
     GetReq(XTestFakeInput, req);
+    if (!req) return 0;
     req->reqType = info->codes->major_opcode;
     req->xtReqType = X_XTestFakeInput;
     req->type = XI_DeviceMotionNotify + (int)(long)info->data;
@@ -400,6 +490,7 @@ XTestGrabControl(Display *dpy, Bool impervious)
 
     LockDisplay(dpy);
     GetReq(XTestGrabControl, req);
+    if (!req) return 0;
     req->reqType = info->codes->major_opcode;
     req->xtReqType = X_XTestGrabControl;
     req->impervious = impervious;

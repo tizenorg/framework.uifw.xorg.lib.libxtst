@@ -1,7 +1,7 @@
 Summary: X.Org X11 libXtst runtime library
 Name: libXtst
-Version: 1.2.0
-Release: 3
+Version: 1.2.4
+Release: 0
 License: MIT
 Group: System Environment/Libraries
 URL: http://www.x.org
@@ -41,6 +41,8 @@ X.Org X11 libXtst development package
 %build
 
 %reconfigure --disable-static \
+		--enable-xtest-touch \
+		--enable-privilege-check-on-xtest-device-api \
 	       LDFLAGS="${LDFLAGS} -Wl,--hash-style=both -Wl,--as-needed"
 make %{?jobs:-j%jobs}
 
@@ -66,7 +68,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /usr/share/license/%{name}
-%doc COPYING ChangeLog
+%doc COPYING
 %{_libdir}/libXtst.so.6
 %{_libdir}/libXtst.so.6.1.0
 

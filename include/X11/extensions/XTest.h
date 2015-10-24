@@ -101,6 +101,27 @@ extern int XTestFakeDeviceButtonEvent(
     unsigned long	/* delay */
 );
 
+#ifdef _F_SUPPORT_XTEST_TOUCH_EVENT_
+extern int XTestFakeDeviceTouchEvent(
+        Display*        /* dpy */,
+        XDevice*        /* dev */,
+        unsigned int    /* touchid */,
+        Bool        /* is_press */,
+        int*        /* axes */,
+        int         /* n_axes */,
+        unsigned long   /* delay */
+);
+
+extern int XTestFakeDeviceTouchUpdateEvent(
+        Display*        /* dpy */,
+        XDevice*        /* dev */,
+        unsigned int    /* touchid */,
+        int*        /* axes */,
+        int         /* n_axes */,
+        unsigned long   /* delay */
+);
+#endif //_F_SUPPORT_XTEST_TOUCH_EVENT_
+
 extern int XTestFakeProximityEvent(
     Display*		/* dpy */,
     XDevice*		/* dev */,

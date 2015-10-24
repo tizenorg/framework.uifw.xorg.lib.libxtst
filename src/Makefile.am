@@ -6,10 +6,14 @@ libXtst_la_SOURCES = \
 
 libXtst_la_LIBADD = @XTST_LIBS@
 
-AM_CFLAGS = \
+AM_CPPFLAGS = \
 	-I$(top_srcdir)/include \
-	-I$(top_srcdir)/include/X11/extensions \
+	-I$(top_srcdir)/include/X11/extensions
+
+AM_CFLAGS = \
 	$(XTST_CFLAGS) \
+	$(XTESTTOUCH_CFLAGS) \
+	$(ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API_CFLAGS) \
 	$(CWARNFLAGS)
 
 libXtst_la_LDFLAGS = -version-number 6:1:0 -no-undefined

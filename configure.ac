@@ -22,14 +22,13 @@
 
 # Initialize Autoconf
 AC_PREREQ([2.60])
-AC_INIT([libXtst], [1.2.1],
+AC_INIT([libXtst], [1.2.2],
 	[https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], [libXtst])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS([config.h])
 
 # Initialize Automake
 AM_INIT_AUTOMAKE([foreign dist-bzip2])
-AM_MAINTAINER_MODE
 
 # Initialize libtool
 AC_PROG_LIBTOOL
@@ -47,6 +46,26 @@ XORG_CHECK_SGML_DOCTOOLS(1.8)
 
 # Obtain compiler/linker options for depedencies
 PKG_CHECK_MODULES(XTST, x11 [xext >= 1.0.99.4] xi [recordproto >= 1.13.99.1] [xextproto >= 7.0.99.3] inputproto)
+
+# Check for _XEatDataWords function that may be patched into older Xlib release
+SAVE_LIBS="$LIBS"
+LIBS="$XTST_LIBS"
+AC_CHECK_FUNCS([_XEatDataWords])
+LIBS="$SAVE_LIBS"
+
+# Check for support XTest Touch EVENT
+AC_ARG_ENABLE(xtest-touch, AS_HELP_STRING([--enable-xtest-touch], [Enable X Test Touch* functions (default: disabled)]), [XTESTTOUCH=$enableval],[XTESTTOUCH=no])
+if test "x$XTESTTOUCH" == xyes; then
+	XTESTTOUCH_CFLAGS="-D_F_SUPPORT_XTEST_TOUCH_EVENT_ "
+	AC_SUBST(XTESTTOUCH_CFLAGS)
+fi
+
+# Check for privilege check is enabled
+AC_ARG_ENABLE(privilege-check-on-xtest-device-api, AS_HELP_STRING([--enable-privilege-check-on-xtest-device-api], [Enable X Test privilege check (default: disabled)]), [ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API=$enableval],[ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API=no])
+if test "x$ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API" == xyes; then
+	ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API_CFLAGS="-D_ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API_ "
+	AC_SUBST(ENABLE_PRIVILEGE_CHECK_ON_XTEST_DEVICE_API_CFLAGS)
+fi
 
 # Determine if the source for man pages is available
 # It may already be present (tarball) or can be generated using xmlto
